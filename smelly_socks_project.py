@@ -9,7 +9,7 @@ import sys
 from random import randint
 
 #default vairables
-global SOCK_OWNER_NAME = 'no_name_entered'
+SOCK_OWNER_NAME = 'no_name_entered'
 SOCK_OWNER_COUNTRY = 'no_country_entered'
 CURRENT_DATE_TIME = 'system_date_error'
 CSV_FILE_NAME = 'no_time_stamp_assigned'
@@ -45,14 +45,13 @@ Selection (1):\n
 Smelly Socks Experiment Interface - Fill in Following Information
 ===================================================================================================
 '''
-experiment_details = '''
+experiment_Details = '''
 Sock Owner\t\t\tSock Owner Country\t\tCSV name\t\t\tExperiment Number
 --------------------\t\t--------------------\t\t--------------------\t\t-------------------
-''' + SOCK_OWNER_NAME.ljust(32, ' ') + SOCK_OWNER_COUNTRY.ljust(32, ' ') + CSV_FILE_NAME.ljust(32, ' ') + '000000007826'.ljust(32, ' ') + '''\n
 '''
 experiment_header = '''\
 ===================================================================================================
-!!! EXPERIMENT IN PROGRESS  !!!
+    !!! EXPERIMENT IN PROGRESS  !!!
 ===================================================================================================
 '''
 experiment_footer = '''\n
@@ -60,36 +59,35 @@ experiment_footer = '''\n
     !!! EXPERIMENT CONCLUDED, CLOSE GATES  !!!
 ===================================================================================================
     '''
-experiment_summary_and_re_prompt = '''\
-
+experiment_summary_and_re_prompt = '''\n
 Experiment summary:
 ===================================================================================================\n
-'''+ experiment_details + '''\n
 - Experiment CSV has been written to ".\csv_library\ ''' + CSV_FILE_NAME + '''"
 - To push the CVS(s) in csv_library, select option #2\n
 ===================================================================================================\n
 '''
 
 def run_experiment():
+    global SOCK_OWNER_NAME, SOCK_OWNER_COUNTRY,CSV_FILE_NAME,CURRENT_DATE_TIME
     clear()
     print(experiment_interface)
-    print('Sock Owner Name:\n')
+    print('Sock Owner Name (Test Chamber 1):\n')
     SOCK_OWNER_NAME = retrieve_name_from_user()
-    print('\nSock Owner Country:')
+    print('\nSock Owner Country (Test Chamber 1):')
     SOCK_OWNER_COUNTRY = retrieve_country_from_user()
 
     CURRENT_DATE_TIME = str(datetime.datetime.utcnow().strftime("%d-%m-%Y_%H:%M"))
     CSV_FILE_NAME = CURRENT_DATE_TIME + '.csv'
     clear()
     print('Experiemnt Details:')
-    print(experiment_details)
-    # print(SOCK_OWNER_NAME.ljust(32, ' ') + SOCK_OWNER_COUNTRY.ljust(32, ' ') + CSV_FILE_NAME.ljust(32, ' ') + '000000007826'.ljust(32, ' ') + '\n')
+    print(experiment_Details)
+    print(SOCK_OWNER_NAME.ljust(32, ' ') + SOCK_OWNER_COUNTRY.ljust(32, ' ') + CSV_FILE_NAME.ljust(32, ' ') + '000000007826'.ljust(32, ' ') + '\n')
 
     raw_input('Confirm information and prep Gates, press enter to begin. (You will have 5 seconds to get into place)\n ')
 
     print(experiment_header)
-    count_down('Open gates in', EXPERIMENT_PREP_TIME, '', False)
-    start_sensor_reader()
+#    count_down('Open gates in', EXPERIMENT_PREP_TIME, '', False)
+    #start_sensor_reader()
     print(experiment_footer)
 
     print('CSV saved to ' + CSV_FILE_NAME + '\n\n')
@@ -100,13 +98,14 @@ def run_experiment():
         run_experiment()
 
 def write_to_csv():
+    global SOCK_OWNER_NAME, SOCK_OWNER_COUNTRY, CSV_FILE_NAME, CURRENT_DATE_TIME
     DATA_COLLECTED = [[SOCK_OWNER_NAME, SOCK_OWNER_COUNTRY, CURRENT_DATE_TIME] , [randint(0,1) for p in range(0,30)]] #Delete when real data is here
     csv.register_dialect('myDialect', delimiter=',', quoting=csv.QUOTE_NONE)
-    new_csv_file = open('.\csv_library\\' + CSV_FILE_NAME, 'w')
+    new_csv_file = open('.\csv_library\\' + SOCK_OWNER_NAME, 'w')
     with new_csv_file:
         writer = csv.writer(new_csv_file, dialect = 'myDialect')
         writer.writerows(DATA_COLLECTED)
-    clear()
+    #clear()
     print(experiment_summary_and_re_prompt)
     print(sys_options)
     choose_path()
