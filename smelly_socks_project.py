@@ -4,9 +4,14 @@
 import os
 import csv
 import time
+import string
 import datetime
 import sys
+import serial
 from random import randint
+
+from struct import unpack
+from binascii import unhexlify
 
 #default vairables
 SOCK_OWNER_NAME_1 = 'no_name_entered'
@@ -128,11 +133,56 @@ def yes_or_no(question):
         return yes_or_no("Please enter either y or n")
 
 def start_sensor_reader():
-    sys.stdout.flush()
-    for x in range (0,30):
-        print('generate_random_data_point()')
-        time.sleep(.1)
+    clear()
+    counter = 0 #will count how many mosquitos have broken the plane
+    voltage = 5 # voltage is assigned the maximun amount of voltage to begin
+    average_voltage = 0
+    voltage_population_size = 1000
+    ArduinoSerial = serial.Serial('com4',9600) #Create Serial port object called arduinoSerialData
+    print("Port opend <COM4>, at <9600> bits per second\n")
+    time.sleep(2) #wait for 2 secounds for the communication to get established
+    print("Calibrating sensors...\n")
+    for x in range(0, voltage_population_size):
+        try:
+            serialOutput = ArduinoSerial.readline().strip().replace('\r','')
+            average_voltage += float(serialOutput)
+        except Exception:
+            pass
 
+    average_voltage = average_voltage/voltage_population_size
+    print("Average voltage reading: ")
+    print(average_voltage)
+    print('\n')
+
+    count_down('Open gates in', 0, '', False) #delete after demo EXPERIMENT_PREP_TIME
+
+    t_end = time.time() + 60 * .1
+    print("TEST HAS BEGUN")
+
+    while time.time() < t_end:
+
+        try:
+            serialOutput = ArduinoSerial.readline().strip().replace('\r','')
+            voltage = float(serialOutput)
+        except Exception:
+            print("start_sensor_reader() ==> Error Converting to float")
+            sys.exc_clear()
+
+        print(voltage)
+        if(voltage < (average_voltage - .1)):
+            print("!!!!!DETECTED!!!!! Total Mosquitos: ")
+            counter += 1
+            print(counter)
+
+            while(voltage < (average_voltage - .1)):
+                print("-not counted-")
+                print(voltage)
+                voltage = float(ArduinoSerial.readline().strip())
+
+    print("!!!!!!!!!!!!!!DONE!!!!!!!!!!!!!!\n")
+    print("A total of ")
+    print(counter)
+    print("mosqutios were detected")
 
 def count_down(front_message, sleep_time, back_message, blank_sleep):
     if blank_sleep is False:
@@ -192,10 +242,12 @@ def choose_path():
 def clear():
      os.system('cls' if os.name=='nt' else 'clear')
 clear()
-print(welcome.center(30));
-# time.sleep(4)
-print(sys_options)
-choose_path()
+
+start_sensor_reader()
+# print(welcome.center(30));
+# # time.sleep(4)
+# print(sys_options)
+# choose_path()
 #
 # mosquito = '''
 #            _         _
