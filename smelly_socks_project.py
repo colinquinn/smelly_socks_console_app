@@ -9,6 +9,7 @@ import datetime
 import sys
 import serial
 from random import randint
+import chilkat
 
 from struct import unpack
 from binascii import unhexlify
@@ -43,7 +44,9 @@ Please select one of the following:\n
 2) View CSV Library
 3) Ping FTP
 4) Conduct System Tests
-5) Quit (or ctrl+c at anytime)\n
+5) Quit (or ctrl+c at anytime)
+6) Run Quick Test (for demo purposes)\n
+
 Your selection:
 '''
 #2) Push CSV library to server
@@ -73,9 +76,23 @@ Experiment summary:
 - To push the CVS(s) in csv_library, select option #2\n
 ===================================================================================================\n
 '''
-
+# mosquito = '''
+#            _         _
+#           /x\       /x\.
+#          /v\x\     /v\/\.
+#          \><\x\   /></x/
+#           \><\x\ /></x/
+#   __ __  __\><\x/></x/___
+#  /##_##\/       \</x/    \__________
+# |###|###|  \         \    __________\.
+#  \##|##/ \__\____\____\__/          \.\.
+#    |_|   |  |  | |  | |              \|
+#    \*/   \  |  | |  | /              /
+#            /    /
+#
+# '''
 def run_experiment():
-    global SOCK_OWNER_NAME_1, SOCK_OWNER_COUNTRY_1, SOCK_OWNER_NAME_2, SOCK_OWNER_COUNTRY_2, CSV_FILE_NAME,CURRENT_DATE_TIME
+    global SOCK_OWNER_NAME_1, SOCK_OWNER_COUNTRY_1, SOCK_OWNER_NAME_2, SOCK_OWNER_COUNTRY_2, CSV_FILE_NAME, CURRENT_DATE_TIME
     clear()
     print(experiment_interface)
     print('Sock Owner Name (Test Chamber 1):\n')
@@ -87,7 +104,7 @@ def run_experiment():
     print('\nSock Owner Country (Test Chamber 2):\n')
     SOCK_OWNER_COUNTRY_2 = retrieve_country_from_user()
 
-    CURRENT_DATE_TIME = str(datetime.datetime.utcnow().strftime("%d-%m-%Y_%H:%M"))
+    CURRENT_DATE_TIME = str(datetime.datetime.now().strftime("%d-%m-%Y_%H:%M"))
 
     CSV_FILE_NAME = SOCK_OWNER_NAME_1.replace(' ','_').lower() + '_VS_' + SOCK_OWNER_NAME_2.replace(' ','_').lower() + '.csv'
     CSV_FILE_NAME2 = CURRENT_DATE_TIME + '.csv'
@@ -114,13 +131,14 @@ def write_to_csv():
     global SOCK_OWNER_NAME_1, SOCK_OWNER_COUNTRY_1, CSV_FILE_NAME, CURRENT_DATE_TIME
     DATA_COLLECTED = [[SOCK_OWNER_NAME_1, SOCK_OWNER_COUNTRY_1, CURRENT_DATE_TIME] , [randint(0,1) for p in range(0,30)]] #Delete when real data is here
     csv.register_dialect('myDialect', delimiter=',', quoting=csv.QUOTE_NONE)
-    new_csv_file = open('.\csv_library\\' + CSV_FILE_NAME, 'w')
+    new_csv_file = open('C:\\' + CSV_FILE_NAME, 'w')
     with new_csv_file:
         writer = csv.writer(new_csv_file, dialect = 'myDialect')
         writer.writerows(DATA_COLLECTED)
     clear()
     print(experiment_summary_and_re_prompt)
-    print(sys_options)
+    post_csv()
+    # print(sys_options)
     choose_path()
 
 def yes_or_no(question):
@@ -133,51 +151,57 @@ def yes_or_no(question):
         return yes_or_no("Please enter either y or n")
 
 def start_sensor_reader():
-    clear()
     counter = 0 #will count how many mosquitos have broken the plane
     voltage = 5 # voltage is assigned the maximun amount of voltage to begin
-    average_voltage = 0
+    voltage_array = [1000]
     voltage_population_size = 1000
-    ArduinoSerial = serial.Serial('com4',9600) #Create Serial port object called arduinoSerialData
-    print("Port opend <COM4>, at <9600> bits per second\n")
-    time.sleep(2) #wait for 2 secounds for the communication to get established
-    print("Calibrating sensors...\n")
-    for x in range(0, voltage_population_size):
-        try:
-            serialOutput = ArduinoSerial.readline().strip().replace('\r','')
-            average_voltage += float(serialOutput)
-        except Exception:
-            pass
 
-    average_voltage = average_voltage/voltage_population_size
-    print("Average voltage reading: ")
-    print(average_voltage)
-    print('\n')
+    #Uncomment code below when serial ports are in use
 
-    count_down('Open gates in', 0, '', False) #delete after demo EXPERIMENT_PREP_TIME
-
-    t_end = time.time() + 60 * .1
-    print("TEST HAS BEGUN")
-
-    while time.time() < t_end:
-
-        try:
-            serialOutput = ArduinoSerial.readline().strip().replace('\r','')
-            voltage = float(serialOutput)
-        except Exception:
-            print("start_sensor_reader() ==> Error Converting to float")
-            sys.exc_clear()
-
-        print(voltage)
-        if(voltage < (average_voltage - .1)):
-            print("!!!!!DETECTED!!!!! Total Mosquitos: ")
-            counter += 1
-            print(counter)
-
-            while(voltage < (average_voltage - .1)):
-                print("-not counted-")
-                print(voltage)
-                voltage = float(ArduinoSerial.readline().strip())
+    # ArduinoSerial = serial.Serial('com4',9600) #Create Serial port object called arduinoSerialData !!!USE /dev/ttyACM0 on PI3 !!!
+    # print("Port opend <COM4>, at <9600> bits per second\n")
+    # time.sleep(2) #wait for 2 secounds for the communication to get established
+    # print("Calibrating sensors...\n")
+    #
+    # for x in range(0, voltage_population_size):
+    #     try:
+    #         serialOutput = ArduinoSerial.readline().strip().replace('\r','')
+    #         voltage_array[i] = float(serialOutput)
+    #     except Exception:
+    #         voltage_array[i] = 0.0
+    #         pass
+    #
+    # voltage_array = sorted(voltage_array)
+    # average_voltage = voltage_array[900]
+    #
+    # print("Average voltage reading: ")
+    # print(average_voltage)
+    # print('\n')
+    #
+    # count_down('Open gates in', 5, '', False) #delete after demo EXPERIMENT_PREP_TIME
+    #
+    # t_end = time.time() + 60 * .1 #.5 is 30 seconds
+    # print("TEST HAS BEGUN")
+    #
+    # while time.time() < t_end:
+    #
+    #     try:
+    #         serialOutput = ArduinoSerial.readline().strip().replace('\r','')
+    #         voltage = float(serialOutput)
+    #     except Exception:
+    #         print("start_sensor_reader() ==> Error Converting to float")
+    #         sys.exc_clear()
+    #
+    #     print(voltage)
+    #     if(voltage < (average_voltage - .05)):
+    #         print("!!!!!DETECTED!!!!! Total Mosquitos: ")
+    #         counter += 1
+    #         print(counter)
+    #
+    #         while(voltage < (average_voltage - .05) or (time.time() < t_end)):
+    #             print("-not counted-")
+    #             print(voltage)
+    #             voltage = float(ArduinoSerial.readline().strip().replace('\r',''))
 
     print("!!!!!!!!!!!!!!DONE!!!!!!!!!!!!!!\n")
     print("A total of ")
@@ -219,7 +243,55 @@ def retrieve_country_from_user():
             print 'Invalid Country'
     return country
 
+def post_csv():
+    global CSV_FILE_NAME
+    sftp = chilkat.CkSFtp()
+    success = sftp.UnlockComponent("Anything for 30-day trial")
+    if (success != True):
+        print(sftp.lastErrorText())
+        sys.exit()
+
+    sftp.put_ConnectTimeoutMs(5000)
+    sftp.put_IdleTimeoutMs(10000)
+
+    hostname = "sftp://sftp.gdom.net"
+    port = 22
+    success = sftp.Connect(hostname,port)
+    if (success != True):
+        print(sftp.lastErrorText())
+        sys.exit()
+
+    success = sftp.AuthenticatePw("smellysocks","dai0xaeJ")
+    if (success != True):
+        print(sftp.lastErrorText())
+        sys.exit()
+
+    success = sftp.InitializeSftp()
+    if (success != True):
+        print(sftp.lastErrorText())
+        sys.exit()
+
+    handle = sftp.openFile(CSV_FILE_NAME,"writeOnly","createTruncate")
+    if (sftp.get_LastMethodSuccess() != True):
+        print(sftp.lastErrorText())
+        sys.exit()
+
+    #  Upload from the local file to the SSH server.
+    success = sftp.UploadFile(handle,"C:\\" + CSV_FILE_NAME)
+    if (success != True):
+        print(sftp.lastErrorText())
+        sys.exit()
+
+    #  Close the file.
+    success = sftp.CloseHandle(handle)
+    if (success != True):
+        print(sftp.lastErrorText())
+        sys.exit()
+
+    print("Success.")
+
 def choose_path():
+    print(sys_options)
     action = None
     while not action:
         try:
@@ -229,38 +301,64 @@ def choose_path():
 
     if action == 1:
         run_experiment()
-        #write_to_csv() use for testing only
     else:
          if action == 2:
-             print_csv_library()
+             clear()
+             print('\n!!!!!!!!!! -- Option 2 has yet to be set up -- !!!!!!!!!!\n')
+             choose_path()
          else:
             if action ==3:
-                print('3')
+                clear()
+                print('\n!!!!!!!!!! -- Option 3 has yet to be set up -- !!!!!!!!!!\n')
+                choose_path()
             else:
                 if action == 4:
-                    print('4')
+                    clear()
+                    print('\n!!!!!!!!!! -- Option 4 has yet to be set up -- !!!!!!!!!!\n')
+                    choose_path()
+                else:
+                    if action == 5:
+                        clear()
+                        print('\nGoodbye\n')
+                        # print(mosquito)
+                        sys.exit()
+                    else:
+                        if action == 6:
+                                clear()
+                                global SOCK_OWNER_NAME_1, SOCK_OWNER_COUNTRY_1, SOCK_OWNER_NAME_2, SOCK_OWNER_COUNTRY_2, CSV_FILE_NAME, CURRENT_DATE_TIME
+                                SOCK_OWNER_NAME_1 = 'sockOwner1Name'
+                                SOCK_OWNER_COUNTRY_1 = 'USA'
+                                SOCK_OWNER_NAME_2 = 'sockOwner2Name'
+                                SOCK_OWNER_COUNTRY_2 = 'FRANCE'
+                                CSV_FILE_NAME = 'sockOwner1Name_VS_sockOwner2Name.csv'
+                                CURRENT_DATE_TIME = str(datetime.datetime.now().strftime("%d-%m-%Y_%H:%M"))
+
+                                print('Experiment Details:')
+                                print(experiment_Details)
+                                print('Test Chamber 1'.ljust(32, ' ') + SOCK_OWNER_NAME_1.ljust(32, ' ') + SOCK_OWNER_COUNTRY_1.ljust(32, ' ') + CSV_FILE_NAME.ljust(32, ' '))# + '000000007826'.ljust(32, ' ') + '\n')
+                                print('Test Chamber 2'.ljust(32, ' ') + SOCK_OWNER_NAME_2.ljust(32, ' ') + SOCK_OWNER_COUNTRY_2.ljust(32, ' ') + CSV_FILE_NAME.ljust(32, ' '))# + '000000007827'.ljust(32, ' ') + '\n')
+                                raw_input('\nConfirm information and prep Gates. Press <enter> to begin. (You will have 5 seconds to get into place)\n ')
+
+                                print(experiment_header)
+                                count_down('Open gates in', 1, '', False)
+                                start_sensor_reader()
+                                print(experiment_footer)
+
+                                print('CSV saved to sockOwner1Name_VS_sockOwner2Name.csv\n\n')
+                                myData = []
+                                if yes_or_no('Rerun experiment? <y/n + enter>') == False:
+                                    write_to_csv()
+                                else:
+                                    run_experiment()
 def clear():
      os.system('cls' if os.name=='nt' else 'clear')
-clear()
 
-start_sensor_reader()
-# print(welcome.center(30));
-# # time.sleep(4)
-# print(sys_options)
-# choose_path()
+# ------------------------------------------------------------------------------------------------------
+# Here begins the function calls.
+# The program begins here:
 #
-# mosquito = '''
-#            _         _
-#           /x\       /x\
-#          /v\x\     /v\/\
-#          \><\x\   /></x/
-#           \><\x\ /></x/
-#   __ __  __\><\x/></x/___
-#  /##_##\/       \</x/    \__________
-# |###|###|  \         \    __________\
-#  \##|##/ \__\____\____\__/          \\
-#    |_|   |  |  | |  | |              \|
-#    \*/   \  |  | |  | /              /
-#            /    /
-#
-# '''
+clear()
+print(welcome)
+print(CURRENT_DATE_TIME)
+# time.sleep(4)
+choose_path()
