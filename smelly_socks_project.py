@@ -340,7 +340,7 @@ def choose_path():
                                 raw_input('\nConfirm information and prep Gates. Press <enter> to begin. (You will have 5 seconds to get into place)\n ')
 
                                 print(experiment_header)
-                                count_down('Open gates in', 1, '', False)
+                                count_down('Open gates in', 5, '', False)
                                 start_sensor_reader()
                                 print(experiment_footer)
 
@@ -359,6 +359,5 @@ def clear():
 #
 clear()
 print(welcome)
-print(CURRENT_DATE_TIME)
 # time.sleep(4)
 choose_path()
